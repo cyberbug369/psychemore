@@ -2,10 +2,18 @@
 
 import { useState } from "react";
 
+import ResumeForm from "../components/ResumeForm";
+import ResumePreview from "../components/ResumePreview";
+import ResumeScore from "../components/ResumeScore";
+
 export default function ResumeBuilder() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [education, setEducation] = useState("");
+  const [skills, setSkills] = useState("");
+  const [experience, setExperience] = useState("");
+  const [showResume, setShowResume] = useState(false);
 
   return (
     <main className="min-h-screen bg-zinc-950 p-10 text-white">
@@ -17,34 +25,43 @@ export default function ResumeBuilder() {
         Build a professional resume in minutes.
       </p>
 
-      <div className="space-y-5 max-w-2xl">
+      <ResumeForm
+        name={name}
+        setName={setName}
+        email={email}
+        setEmail={setEmail}
+        phone={phone}
+        setPhone={setPhone}
+        education={education}
+        setEducation={setEducation}
+        skills={skills}
+        setSkills={setSkills}
+        experience={experience}
+        setExperience={setExperience}
+        onGenerate={() => setShowResume(true)}
+      />
 
-        <input
-          placeholder="Full Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full rounded-xl bg-zinc-900 border border-zinc-800 p-4"
-        />
+      {showResume && (
+        <>
+          <ResumeScore
+            name={name}
+            email={email}
+            phone={phone}
+            education={education}
+            skills={skills}
+            experience={experience}
+          />
 
-        <input
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full rounded-xl bg-zinc-900 border border-zinc-800 p-4"
-        />
-
-        <input
-          placeholder="Phone Number"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          className="w-full rounded-xl bg-zinc-900 border border-zinc-800 p-4"
-        />
-
-        <button className="rounded-xl bg-purple-600 px-6 py-3 hover:bg-purple-500 transition">
-          Generate Resume
-        </button>
-
-      </div>
+          <ResumePreview
+            name={name}
+            email={email}
+            phone={phone}
+            education={education}
+            skills={skills}
+            experience={experience}
+          />
+        </>
+      )}
     </main>
   );
 }
