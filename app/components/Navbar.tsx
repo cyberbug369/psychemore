@@ -29,6 +29,13 @@ export default function Navbar() {
         </Link>
 
         <Link
+          href="/resume-builder"
+          className="transition-all duration-300 hover:text-purple-400 hover:scale-105"
+        >
+          Resume Builder
+        </Link>
+
+        <Link
           href="/"
           className="transition-all duration-300 hover:text-purple-400 hover:scale-105"
         >
