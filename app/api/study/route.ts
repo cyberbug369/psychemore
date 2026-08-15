@@ -1,84 +1,160 @@
 import { NextResponse } from "next/server";
 
+type StudyAction = "Summarize" | "Explain" | "Quiz Me";
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    const notes = body.notes;
-    const action = body.action;
+    const notes =
+      typeof body.notes === "string" ? body.notes.trim() : "";
 
-    if (!notes || !notes.trim()) {
+    const action = body.action as StudyAction;
+
+    if (!notes) {
       return NextResponse.json(
         { error: "Please provide some study notes." },
         { status: 400 }
       );
     }
 
-    let result = "";
+    const validActions: StudyAction[] = [
+      "Summarize",
+      "Explain",
+      "Quiz Me",
+    ];
 
-    if (action === "Summarize") {
-      result = `📝 SUMMARY
-
-Here is a simplified summary of your notes:
-
-${notes}
-
-KEY POINTS
-• Focus on the main ideas in the material.
-• Identify important terms and concepts.
-• Try explaining the topic in your own words.
-
-💡 STUDY TIP
-After reading the summary, close your notes and try to explain
-the topic from memory.`;
+    if (!validActions.includes(action)) {
+      return NextResponse.json(
+        { error: "Please choose Summarize, Explain, or Quiz Me." },
+        { status: 400 }
+      );
     }
 
-    if (action === "Explain") {
-      result = `💡 EXPLANATION
+    const apiKey = process.env.OPENROUTER_API_KEY;
+    const primaryModel =
+      process.env.OPENROUTER_MODEL || "openrouter/free";
 
-Let's break this material down into simpler terms:
+    if (!apiKey) {
+      console.error("OPENROUTER_API_KEY is missing.");
 
-${notes}
-
-Think of the topic as a collection of ideas that connect
-together. Start with the basic concept, then understand how
-the different parts relate to each other.
-
-🧠 QUICK TIP
-If something is confusing, break it into smaller questions
-and solve them one at a time.`;
+      return NextResponse.json(
+        { error: "The AI service is not configured yet." },
+        { status: 500 }
+      );
     }
 
-    if (action === "Quiz Me") {
-      result = `🎯 QUICK QUIZ
+    let instruction = "";
 
-Based on the material you provided, try answering these:
+    switch (action) {
+      case "Summarize":
+        instruction =
+          "Summarize the student's notes clearly. Extract the main ideas, important terms, and key facts. Keep it easy for a student to understand.";
+        break;
 
-1. What is the main idea of this topic?
+      case "Explain":
+        instruction =
+          "Explain the student's notes in simple, clear language. Start with the basic idea, then explain how the important parts connect. Use a short example when useful.";
+        break;
 
-2. What are the most important concepts you remember?
-
-3. Can you explain the topic without looking at your notes?
-
-4. Give one real-world example related to this topic.
-
-5. What part of the material do you find most difficult?
-
-🔥 CHALLENGE
-Answer the questions without looking back at your notes.
-Then check your answers and identify what you need to review.`;
+      case "Quiz Me":
+        instruction =
+          "Create a useful study quiz from the student's notes. Include 5 questions that test understanding rather than simple copying. Put the answer key after the questions.";
+        break;
     }
 
-    if (!result) {
-      result = "Please choose Summarize, Explain, or Quiz Me.";
+    const prompt = `${instruction}
+
+You are Psychemore's Study Assistant.
+
+Help the student understand and learn the material.
+Do not invent information that is not supported by the notes unless
+a small amount of general background knowledge is necessary to explain
+the topic clearly.
+
+Student notes:
+${notes}`;
+
+    const controller = new AbortController();
+
+    const timeout = setTimeout(() => {
+      controller.abort();
+    }, 30000);
+
+    try {
+      const response = await fetch(
+        "https://openrouter.ai/api/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+            "HTTP-Referer": "https://psychemore.vercel.app",
+            "X-Title": "Psychemore",
+          },
+          body: JSON.stringify({
+            model: primaryModel,
+            models: [primaryModel],
+            messages: [
+              {
+                role: "user",
+                content: prompt,
+              },
+            ],
+            temperature: 0.4,
+          }),
+          signal: controller.signal,
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("OpenRouter error:", data);
+
+        return NextResponse.json(
+          {
+            error:
+              data?.error?.message ||
+              "The AI provider returned an error.",
+          },
+          { status: response.status }
+        );
+      }
+
+      const result = data?.choices?.[0]?.message?.content;
+
+      if (!result) {
+        return NextResponse.json(
+          { error: "The AI did not return a response." },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json({ result });
+    } finally {
+      clearTimeout(timeout);
+    }
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      console.error("OpenRouter request timed out.");
+
+      return NextResponse.json(
+        {
+          error:
+            "The AI took too long to respond. Please try again.",
+        },
+        { status: 504 }
+      );
     }
 
-    return NextResponse.json({
-      result,
-    });
-  } catch {
+    console.error("Study API error:", error);
+
     return NextResponse.json(
-      { error: "Something went wrong." },
+      {
+        error:
+          "Unable to connect to the AI Study Assistant. Please try again.",
+      },
       { status: 500 }
     );
   }
