@@ -1,29 +1,34 @@
 "use client";
 
-import Link from "next/link";
 import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "../lib/supabase/client";
 
-export default function SignUp() {
-  const [email, setEmail] = useState("");
+export default function ResetPassword() {
+  const router = useRouter();
+
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSignUp = async (event: FormEvent<HTMLFormElement>) => {
+  const handleUpdatePassword = async (
+    event: FormEvent<HTMLFormElement>
+  ) => {
     event.preventDefault();
+
+    if (password !== confirmPassword) {
+      setMessage("Passwords do not match.");
+      return;
+    }
 
     setLoading(true);
     setMessage("");
 
     const supabase = createClient();
 
-    const { error } = await supabase.auth.signUp({
-      email,
+    const { error } = await supabase.auth.updateUser({
       password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
     });
 
     setLoading(false);
@@ -33,9 +38,12 @@ export default function SignUp() {
       return;
     }
 
-    setMessage(
-      "Account created! Check your email to verify your account. After verification, you'll be redirected back to Psychemore."
-    );
+    setMessage("Password updated successfully!");
+
+    setTimeout(() => {
+      router.push("/login");
+      router.refresh();
+    }, 1500);
   };
 
   return (
@@ -46,33 +54,20 @@ export default function SignUp() {
           <div className="mb-4 text-5xl">🧠</div>
 
           <h1 className="text-4xl font-bold">
-            Join <span className="text-purple-400">Psychemore</span>
+            Create a New <span className="text-purple-400">Password</span>
           </h1>
 
           <p className="mt-3 text-zinc-400">
-            Create your free account and unlock the tools.
+            Choose a new password for your Psychemore account.
           </p>
         </div>
 
         <form
-          onSubmit={handleSignUp}
+          onSubmit={handleUpdatePassword}
           className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6"
         >
           <label className="mb-2 block text-sm font-semibold text-zinc-300">
-            Email
-          </label>
-
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            placeholder="you@example.com"
-            className="mb-5 w-full rounded-xl border border-zinc-700 bg-zinc-950 p-3 text-white outline-none placeholder:text-zinc-600 focus:border-purple-500"
-          />
-
-          <label className="mb-2 block text-sm font-semibold text-zinc-300">
-            Password
+            New Password
           </label>
 
           <input
@@ -85,12 +80,26 @@ export default function SignUp() {
             className="w-full rounded-xl border border-zinc-700 bg-zinc-950 p-3 text-white outline-none placeholder:text-zinc-600 focus:border-purple-500"
           />
 
+          <label className="mb-2 mt-5 block text-sm font-semibold text-zinc-300">
+            Confirm New Password
+          </label>
+
+          <input
+            type="password"
+            required
+            minLength={6}
+            value={confirmPassword}
+            onChange={(event) => setConfirmPassword(event.target.value)}
+            placeholder="Enter your password again"
+            className="w-full rounded-xl border border-zinc-700 bg-zinc-950 p-3 text-white outline-none placeholder:text-zinc-600 focus:border-purple-500"
+          />
+
           <button
             type="submit"
             disabled={loading}
             className="mt-6 w-full rounded-xl bg-purple-600 px-5 py-3 font-semibold transition hover:bg-purple-500 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {loading ? "Creating account..." : "Create Account"}
+            {loading ? "Updating..." : "Update Password"}
           </button>
 
           {message && (
@@ -100,23 +109,14 @@ export default function SignUp() {
           )}
         </form>
 
-        <p className="mt-6 text-center text-sm text-zinc-500">
-          Already have an account?{" "}
-          <Link
-            href="/login"
-            className="font-semibold text-purple-400 hover:text-purple-300"
-          >
-            Log in
-          </Link>
-        </p>
-
         <div className="mt-6 text-center">
-          <Link
-            href="/"
-            className="text-sm text-zinc-600 hover:text-purple-400"
+          <button
+            type="button"
+            onClick={() => router.push("/login")}
+            className="text-sm text-zinc-500 transition hover:text-purple-400"
           >
-            ← Back to Psychemore
-          </Link>
+            ← Back to Login
+          </button>
         </div>
 
       </div>

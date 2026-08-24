@@ -2,18 +2,16 @@
 
 import Link from "next/link";
 import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
 import { createClient } from "../lib/supabase/client";
 
-export default function Login() {
-  const router = useRouter();
-
+export default function ForgotPassword() {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
+  const handleResetRequest = async (
+    event: FormEvent<HTMLFormElement>
+  ) => {
     event.preventDefault();
 
     setLoading(true);
@@ -21,9 +19,8 @@ export default function Login() {
 
     const supabase = createClient();
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
     });
 
     setLoading(false);
@@ -33,8 +30,9 @@ export default function Login() {
       return;
     }
 
-    router.push("/get-started");
-    router.refresh();
+    setMessage(
+      "If an account exists with that email, we've sent a password reset link. Check your inbox."
+    );
   };
 
   return (
@@ -45,16 +43,17 @@ export default function Login() {
           <div className="mb-4 text-5xl">🧠</div>
 
           <h1 className="text-4xl font-bold">
-            Welcome <span className="text-purple-400">Back</span>
+            Reset <span className="text-purple-400">Password</span>
           </h1>
 
           <p className="mt-3 text-zinc-400">
-            Log in to continue using Psychemore.
+            Enter your email and we&apos;ll send you a secure password reset
+            link.
           </p>
         </div>
 
         <form
-          onSubmit={handleLogin}
+          onSubmit={handleResetRequest}
           className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6"
         >
           <label className="mb-2 block text-sm font-semibold text-zinc-300">
@@ -67,28 +66,6 @@ export default function Login() {
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             placeholder="you@example.com"
-            className="mb-5 w-full rounded-xl border border-zinc-700 bg-zinc-950 p-3 text-white outline-none placeholder:text-zinc-600 focus:border-purple-500"
-          />
-
-          <div className="mb-2 flex items-center justify-between">
-            <label className="block text-sm font-semibold text-zinc-300">
-              Password
-            </label>
-
-            <Link
-              href="/forgot-password"
-              className="text-sm text-purple-400 transition hover:text-purple-300"
-            >
-              Forgot password?
-            </Link>
-          </div>
-
-          <input
-            type="password"
-            required
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            placeholder="Your password"
             className="w-full rounded-xl border border-zinc-700 bg-zinc-950 p-3 text-white outline-none placeholder:text-zinc-600 focus:border-purple-500"
           />
 
@@ -97,23 +74,23 @@ export default function Login() {
             disabled={loading}
             className="mt-6 w-full rounded-xl bg-purple-600 px-5 py-3 font-semibold transition hover:bg-purple-500 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {loading ? "Logging in..." : "Log In"}
+            {loading ? "Sending..." : "Send Reset Link"}
           </button>
 
           {message && (
-            <p className="mt-5 rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-300">
+            <p className="mt-5 rounded-xl border border-zinc-800 bg-zinc-950 p-4 text-sm text-zinc-300">
               {message}
             </p>
           )}
         </form>
 
         <p className="mt-6 text-center text-sm text-zinc-500">
-          Don&apos;t have an account?{" "}
+          Remember your password?{" "}
           <Link
-            href="/signup"
+            href="/login"
             className="font-semibold text-purple-400 hover:text-purple-300"
           >
-            Create one
+            Log in
           </Link>
         </p>
 
