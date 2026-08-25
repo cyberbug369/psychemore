@@ -1,22 +1,42 @@
+"use client";
+
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { createClient } from "../lib/supabase/server";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { createClient } from "../lib/supabase/client";
 import Logo from "./Logo";
 
-export default async function Navbar() {
-  const supabase = await createClient();
+export default function Navbar() {
+  const pathname = usePathname();
+  const router = useRouter();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const [user, setUser] = useState<any>(null);
+
+  const supabase = createClient();
+
+  useEffect(() => {
+    async function loadUser() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      setUser(user);
+    }
+
+    loadUser();
+  }, []);
+
+  // The dashboard has its own sidebar/navigation.
+  // Do not show the global navbar there.
+  if (pathname === "/dashboard") {
+    return null;
+  }
 
   async function signOut() {
-    "use server";
-
-    const supabase = await createClient();
     await supabase.auth.signOut();
 
-    redirect("/");
+    router.push("/");
+    router.refresh();
   }
 
   return (
@@ -70,14 +90,13 @@ export default async function Navbar() {
               Dashboard
             </Link>
 
-            <form action={signOut}>
-              <button
-                type="submit"
-                className="rounded-xl bg-purple-600 px-4 py-2 font-semibold transition hover:bg-purple-500"
-              >
-                Log Out
-              </button>
-            </form>
+            <button
+              type="button"
+              onClick={signOut}
+              className="rounded-xl bg-purple-600 px-4 py-2 font-semibold transition hover:bg-purple-500"
+            >
+              Log Out
+            </button>
           </div>
         ) : (
           <div className="flex items-center gap-3">
