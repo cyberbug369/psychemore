@@ -1,8 +1,10 @@
+
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "../lib/supabase/server";
 import Logo from "../components/Logo";
 import DashboardChat from "../components/DashboardChat";
+import AdBanner from "../components/ads/AdBanner";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -44,41 +46,13 @@ export default async function DashboardPage() {
   }
 
   const navigation = [
-    {
-      href: "/dashboard",
-      label: "Home",
-      icon: "⌂",
-    },
-    {
-      href: "/study-assistant",
-      label: "Study Assistant",
-      icon: "📚",
-    },
-    {
-      href: "/resume-builder",
-      label: "Resume Builder",
-      icon: "📄",
-    },
-    {
-      href: "/cover-letter",
-      label: "Cover Letter",
-      icon: "✉️",
-    },
-    {
-      href: "/opportunities",
-      label: "Opportunities",
-      icon: "💼",
-    },
-    {
-      href: "/interview-practice",
-      label: "Interview Practice",
-      icon: "🎯",
-    },
-    {
-      href: "/career-roadmap",
-      label: "Career Roadmap",
-      icon: "🧭",
-    },
+    { href: "/dashboard", label: "Home", icon: "⌂" },
+    { href: "/study-assistant", label: "Study Assistant", icon: "📚" },
+    { href: "/resume-builder", label: "Resume Builder", icon: "📄" },
+    { href: "/cover-letter", label: "Cover Letter", icon: "✉️" },
+    { href: "/opportunities", label: "Opportunities", icon: "💼" },
+    { href: "/interview-practice", label: "Interview Practice", icon: "🎯" },
+    { href: "/career-roadmap", label: "Career Roadmap", icon: "🧭" },
   ];
 
   return (
@@ -88,7 +62,6 @@ export default async function DashboardPage() {
         {/* Sidebar */}
         <aside className="hidden w-60 shrink-0 flex-col border-r border-zinc-800/80 bg-[#101014] p-3 md:flex">
 
-          {/* Small Psychemore Logo */}
           <Link
             href="/dashboard"
             className="mb-6 flex items-center px-3 py-2"
@@ -96,7 +69,6 @@ export default async function DashboardPage() {
             <Logo compact />
           </Link>
 
-          {/* New Chat */}
           <Link
             href="/dashboard"
             className="mb-4 flex items-center gap-3 rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm font-semibold transition hover:bg-zinc-800"
@@ -107,16 +79,15 @@ export default async function DashboardPage() {
 
           {/* Navigation */}
           <nav className="space-y-1">
-
             {navigation.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm transition ${
+                className={
                   item.href === "/dashboard"
-                    ? "bg-zinc-800 text-white"
-                    : "text-zinc-400 hover:bg-zinc-800 hover:text-white"
-                }`}
+                    ? "flex items-center gap-3 rounded-xl bg-zinc-800 px-4 py-3 text-sm text-white transition"
+                    : "flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-white"
+                }
               >
                 <span className="w-5 text-center">
                   {item.icon}
@@ -125,7 +96,6 @@ export default async function DashboardPage() {
                 <span>{item.label}</span>
               </Link>
             ))}
-
           </nav>
 
           {/* Bottom User Section */}
@@ -157,7 +127,6 @@ export default async function DashboardPage() {
 
             </div>
 
-            {/* ONLY Logout */}
             <form action={signOut}>
               <button
                 type="submit"
@@ -168,7 +137,6 @@ export default async function DashboardPage() {
             </form>
 
           </div>
-
         </aside>
 
         {/* Main Workspace */}
@@ -203,7 +171,7 @@ export default async function DashboardPage() {
                 </div>
 
                 <h1 className="text-3xl font-bold tracking-tight">
-                  Welcome back,{" "}
+                  Welcome back{" "}
                   <span className="text-purple-400">
                     {firstName}
                   </span>{" "}
@@ -219,6 +187,9 @@ export default async function DashboardPage() {
               {/* Working AI Chat */}
               <DashboardChat />
 
+              {/* AdSense */}
+              <AdBanner />
+
             </div>
 
           </div>
@@ -229,3 +200,4 @@ export default async function DashboardPage() {
     </main>
   );
 }
+
