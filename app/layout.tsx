@@ -1,4 +1,3 @@
-
 import type { Metadata } from "next";
 import Navbar from "./components/Navbar";
 import "./globals.css";
@@ -16,19 +15,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full antialiased">
-      <body className="flex min-h-full flex-col bg-zinc-950">
-        <Navbar />
-
+      <head>
         <script
           async
           src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT}`}
           crossOrigin="anonymous"
         />
+      </head>
 
+      <body className="flex min-h-full flex-col bg-zinc-950">
+        <Navbar />
         {children}
       </body>
     </html>
   );
 }
-
-
